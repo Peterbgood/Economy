@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Economy Simulator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .stats {
+            background: #f0f0f0;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 5px 10px;
+            margin: 5px;
+        }
+        #message {
+            color: #666;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Economy Simulator</h1>
+    <div class="stats">
+        <p>Money: $<span id="money">1000</span></p>
+        <p>Income: $<span id="income">100</span>/turn</p>
+        <p>Expenses: $<span id="expenses">50</span>/turn</p>
+        <p>Population: <span id="population">1000</span></p>
+        <p>Turn: <span id="turn">1</span></p>
+    </div>
+
+    <h2>Actions</h2>
+    <button onclick="investInfrastructure()">Invest in Infrastructure ($200)</button>
+    <button onclick="increaseTaxes()">Increase Taxes</button>
+    <button onclick="decreaseTaxes()">Decrease Taxes</button>
+    <button onclick="nextTurn()">Next Turn</button>
+
+    <div id="message"></div>
+
+    <script>
+        let gameState = {
+            money: 1000,
+            baseIncome: 100,
+            income: 100,
+            expenses: 50,
+            population: 1000,
+            turn: 1,
+            taxRate: 0.1,
+            infrastructureLevel: 1
+        };
+
+        function updateDisplay() {
+            document.getElementById('money').textContent = Math.round(gameState.money);
+            document.getElementById('income').textContent = Math.round(gameState.income);
+            document.getElementById('expenses').textContent = Math.round(gameState.expenses);
+            document.getElementById('population').textContent = gameState.population;
+            document.getElementById('turn').textContent = gameState.turn;
+        }
+
+        function showMessage(msg) {
+            document.getElementById('message').textContent = msg;
+            setTimeout(() => {
+                document.getElementById('message').textContent = '';
+            }, 3000);
+        }
+
+        function investInfrastructure() {
+            if (gameState.money >= 200) {
+                gameState.money -= 200;
+                gameState.infrastructureLevel += 1;
+                gameState.income = gameState.baseIncome * gameState.taxRate * gameState.infrastructureLevel;
+                gameState.expenses += 10; // Maintenance costs
+                showMessage('Infrastructure improved! Income increased, but so did maintenance costs.');
+                updateDisplay();
+            } else {
+                showMessage('Not enough money!');
+            }
+        }
+
+        function increaseTaxes() {
+            if (gameState.taxRate < 0.5) {
+                gameState.taxRate += 0.05;
+                gameState.income = gameState.baseIncome * gameState.taxRate * gameState.infrastructureLevel;
+                
+                // Population might decrease due to higher taxes
+                if (Math.random() < 0.3) {
+                    gameState.population -= Math.floor(gameState.population * 0.05);
+                    gameState.baseIncome = gameState.population * 0.1;
+                    showMessage('Taxes increased! Some people left due to high taxes.');
+                } else {
+                    showMessage('Taxes increased!');
+                }
+                updateDisplay();
+            } else {
+                showMessage('Taxes are already at maximum!');
+            }
+        }
+
+        function decreaseTaxes() {
+            if (gameState.taxRate > 0.05) {
+                gameState.taxRate -= 0.05;
+                gameState.income = gameState.baseIncome * gameState.taxRate * gameState.infrastructureLevel;
+                
+                // Population might increase due to lower taxes
+                if (Math.random() < 0.3) {
+                    gameState.population += Math.floor(gameState.population * 0.05);
+                    gameState.baseIncome = gameState.population * 0.1;
+                    showMessage('Taxes decreased! Population grew due to lower taxes.');
+                } else {
+                    showMessage('Taxes decreased!');
+                }
+                updateDisplay();
+            } else {
+                showMessage('Taxes are already at minimum!');
+            }
+        }
+
+        function nextTurn() {
+            gameState.money += gameState.income - gameState.expenses;
+            gameState.turn++;
+
+            // Random events
+            let eventChance = Math.random();
+            if (eventChance < 0.1) {
+                // Economic boom
+                gameState.income *= 1.2;
+                showMessage('Economic boom! Income increased!');
+            } else if (eventChance < 0.2) {
+                // Recession
+                gameState.income *= 0.8;
+                showMessage('Recession! Income decreased!');
+            }
+
+            // Check game over
+            if (gameState.money < 0) {
+                showMessage('Game Over! You went bankrupt!');
+                setTimeout(() => location.reload(), 3000);
+            }
+
+            updateDisplay();
+        }
+
+        // Initial display update
+        updateDisplay();
+    </script>
+</body>
+</html>
